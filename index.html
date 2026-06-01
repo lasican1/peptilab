@@ -172,6 +172,11 @@
         <div id="checkout-view" class="p-6">
           <form id="checkout-form" novalidate class="space-y-8">
 
+            <!-- Honeypot: hidden from humans; only bots fill it. Submissions with
+                 a value here are silently discarded. Do not remove. -->
+            <input type="text" name="botcheck" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+
             <!-- Order summary -->
             <section>
               <h4 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Order summary</h4>

@@ -24,6 +24,18 @@
   }
 }
 
+/* Honeypot anti-spam field — visually removed but still in the DOM so bots
+   fill it. Kept out of layout, tab order, and screen readers. */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 /* Checkout form fields */
 .field {
   width: 100%;

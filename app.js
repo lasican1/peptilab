@@ -315,6 +315,14 @@ async function emailOrder(order) {
 
 checkoutForm.addEventListener('submit', async e => {
   e.preventDefault();
+
+  // Honeypot: humans never see this field, so if it's filled it's a bot.
+  // Silently drop the submission without sending or showing an error.
+  if (checkoutForm.elements['botcheck'] && checkoutForm.elements['botcheck'].value) {
+    console.warn('Honeypot triggered — submission ignored.');
+    return;
+  }
+
   if (!validateForm()) return;
 
   const order = {
