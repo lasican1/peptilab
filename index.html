@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeptiLab — Research Peptides</title>
+
+  <!-- Tailwind (CDN) + theme config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eef6ff', 100: '#d9eaff', 500: '#2f6bff', 600: '#1f53e0', 700: '#1a44b8' }
+          },
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="font-sans bg-slate-50 text-slate-800 antialiased">
+
+  <!-- ===== Header ===== -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-extrabold text-xl tracking-tight">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-brand-500 text-white">P</span>
+        Pepti<span class="text-brand-500">Lab</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+        <a href="#products" class="hover:text-brand-600 transition">Products</a>
+        <a href="#about" class="hover:text-brand-600 transition">About</a>
+        <a href="#contact" class="hover:text-brand-600 transition">Contact</a>
+      </nav>
+      <button id="cart-btn" class="relative inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-700 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+        Cart
+        <span id="cart-count" class="absolute -top-1 -right-1 grid place-items-center min-w-5 h-5 px-1 rounded-full bg-brand-500 text-white text-[11px] font-bold">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-brand-50 via-white to-slate-100"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-100 rounded-full blur-3xl opacity-60"></div>
+    <div class="relative max-w-6xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <span class="inline-block rounded-full bg-brand-100 text-brand-700 text-xs font-semibold px-3 py-1 mb-5">For research use only</span>
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+          Premium peptides, <span class="text-brand-500">lab-tested</span> purity.
+        </h1>
+        <p class="mt-5 text-lg text-slate-600 max-w-md">
+          High-quality research peptides with third-party COA verification, cold-chain shipping, and fast turnaround.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#products" class="rounded-full bg-brand-500 text-white px-6 py-3 font-semibold hover:bg-brand-600 transition shadow-lg shadow-brand-500/30">Shop products</a>
+          <a href="#about" class="rounded-full bg-white text-slate-700 px-6 py-3 font-semibold border border-slate-200 hover:border-slate-300 transition">Learn more</a>
+        </div>
+        <div class="mt-10 flex gap-8 text-sm">
+          <div><div class="text-2xl font-extrabold text-slate-900">99.9%</div><div class="text-slate-500">Purity</div></div>
+          <div><div class="text-2xl font-extrabold text-slate-900">24h</div><div class="text-slate-500">Dispatch</div></div>
+          <div><div class="text-2xl font-extrabold text-slate-900">3rd-party</div><div class="text-slate-500">Tested</div></div>
+        </div>
+      </div>
+      <div class="relative hidden md:block">
+        <div class="aspect-square rounded-3xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-2xl shadow-brand-500/40 grid place-items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-40 h-40 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-5 0v4.586a2 2 0 01-.586 1.414l-4.243 4.243A4 4 0 008 20h8a4 4 0 002.829-6.757l-4.243-4.243A2 2 0 0114 7.586V3" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Products ===== -->
+  <section id="products" class="max-w-6xl mx-auto px-4 py-16 md:py-24">
+    <div class="flex items-end justify-between mb-10">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Featured peptides</h2>
+        <p class="text-slate-500 mt-2">Each vial ships with a Certificate of Analysis.</p>
+      </div>
+    </div>
+    <div id="product-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+  </section>
+
+  <!-- ===== About ===== -->
+  <section id="about" class="bg-white border-y border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-3 gap-8">
+      <div class="p-6 rounded-2xl bg-slate-50">
+        <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 grid place-items-center mb-4 font-bold">✓</div>
+        <h3 class="font-bold text-lg">Verified purity</h3>
+        <p class="text-slate-500 mt-1 text-sm">HPLC & mass-spec tested by independent labs.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-slate-50">
+        <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 grid place-items-center mb-4 font-bold">❄</div>
+        <h3 class="font-bold text-lg">Cold-chain shipping</h3>
+        <p class="text-slate-500 mt-1 text-sm">Temperature-controlled packaging on every order.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-slate-50">
+        <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 grid place-items-center mb-4 font-bold">⚡</div>
+        <h3 class="font-bold text-lg">Fast dispatch</h3>
+        <p class="text-slate-500 mt-1 text-sm">Orders placed before 2pm ship the same day.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer id="contact" class="bg-slate-900 text-slate-300">
+    <div class="max-w-6xl mx-auto px-4 py-12 grid sm:grid-cols-2 gap-6">
+      <div>
+        <div class="font-extrabold text-xl text-white">PeptiLab</div>
+        <p class="text-slate-400 mt-2 text-sm max-w-sm">Research-grade peptides for laboratory and research use only. Not for human consumption.</p>
+      </div>
+      <div class="sm:text-right text-sm text-slate-400">
+        <p>support@peptilab.example</p>
+        <p class="mt-1">© 2026 PeptiLab. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== Cart Drawer ===== -->
+  <div id="cart-overlay" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
+  <aside id="cart-drawer" class="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white shadow-2xl translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="flex items-center justify-between px-5 h-16 border-b border-slate-200">
+      <h3 class="font-bold text-lg">Your cart</h3>
+      <button id="cart-close" class="w-9 h-9 grid place-items-center rounded-full hover:bg-slate-100 transition text-2xl leading-none">&times;</button>
+    </div>
+
+    <div id="cart-items" class="flex-1 overflow-y-auto p-5 space-y-4"></div>
+
+    <div id="cart-empty" class="flex-1 grid place-items-center text-center px-6">
+      <div>
+        <div class="text-5xl mb-3">🧪</div>
+        <p class="text-slate-500">Your cart is empty.</p>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 p-5 space-y-4">
+      <div class="flex items-center justify-between text-lg font-bold">
+        <span>Total</span>
+        <span id="cart-total">$0.00</span>
+      </div>
+      <button id="checkout-btn" disabled class="w-full rounded-full bg-brand-500 text-white py-3.5 font-semibold hover:bg-brand-600 transition disabled:opacity-40 disabled:cursor-not-allowed">
+        Checkout
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== Toast ===== -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    Added to cart
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

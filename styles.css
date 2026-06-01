@@ -1,0 +1,34 @@
+/* PeptiLab — custom styles layered on top of Tailwind (CDN).
+   Tailwind handles most styling via utility classes in the HTML.
+   This file holds the few rules that are awkward to express inline. */
+
+/* Smooth, consistent scrollbar inside the cart drawer */
+#cart-items {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+#cart-items::-webkit-scrollbar {
+  width: 8px;
+}
+#cart-items::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Subtle entrance animation for newly rendered cart rows */
+.cart-row {
+  animation: cart-row-in 0.25s ease both;
+}
+@keyframes cart-row-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
