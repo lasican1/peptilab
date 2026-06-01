@@ -15,7 +15,7 @@ const STORAGE_KEY = 'peptilab.cart';
 // want orders delivered; the key is emailed to you instantly). Paste it below.
 // While left as the placeholder, the checkout still works but only confirms
 // locally without sending an email.
-const WEB3FORMS_ACCESS_KEY = 'YOUR_ACCESS_KEY_HERE';
+const WEB3FORMS_ACCESS_KEY = '20d7db36-36ee-47c1-8934-f3c447f01c0a';
 
 // cart: Map<id, { product, qty }>
 const cart = new Map();
