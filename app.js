@@ -28,6 +28,15 @@ const BANK_ACCOUNT = '00 0000 0000 0000 0000 0000 0000';
 // Odbiorca przelewu
 const BANK_RECIPIENT = 'PeptiLab';
 
+// ----- E-mail potwierdzający do KLIENTA (EmailJS) -----
+// Darmowe konto: https://www.emailjs.com — połącz usługę e-mail (np. Gmail),
+// utwórz szablon i wklej trzy wartości poniżej. Dopóki są wartości zastępcze,
+// e-mail do klienta jest pomijany (zamówienie i tak działa, dane do przelewu
+// klient widzi na ekranie potwierdzenia).
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+
 // cart: Map<id, { product, qty }>
 const cart = new Map();
 
@@ -387,6 +396,58 @@ async function emailOrder(order, captchaToken) {
   return true;
 }
 
+// Treść wiadomości potwierdzającej wysyłanej do KLIENTA
+function buildCustomerMessage(order) {
+  return (
+    `Dziękujemy za zamówienie w PeptiLab!\n\n` +
+    `Numer zamówienia: ${order.orderNo}\n\n` +
+    `Produkty:\n${order.lines}\n\n` +
+    `Produkty razem: ${fmt(order.subtotal)}\n` +
+    `Wysyłka (${order.shipMethodLabel}, ${order.shipRegionLabel}): ${fmt(order.shipping)}\n` +
+    `Razem do zapłaty: ${fmt(order.total)}\n\n` +
+    (order.paczkomat ? `Numer paczkomatu: ${order.paczkomat}\n` : '') +
+    `Adres dostawy:\n` +
+    `  ${order.name}\n` +
+    `  ${order.address}\n` +
+    `  ${order.postal} ${order.city}\n` +
+    `  ${order.country}\n\n` +
+    `PŁATNOŚĆ PRZELEWEM\n` +
+    `Prosimy o przelew na poniższe dane. Zamówienie realizujemy po zaksięgowaniu wpłaty.\n` +
+    `  Odbiorca: ${BANK_RECIPIENT}\n` +
+    `  Tytuł płatności: ${order.orderNo}\n` +
+    `  Kwota: ${fmt(order.total)}\n` +
+    `  Numer konta: ${BANK_ACCOUNT}\n\n` +
+    `W razie pytań po prostu odpisz na tę wiadomość.\n` +
+    `Pozdrawiamy,\nZespół PeptiLab`
+  );
+}
+
+// Wysyła e-mail potwierdzający do klienta przez EmailJS.
+// Błędy są tylko logowane — nie blokują złożenia zamówienia.
+async function emailCustomer(order) {
+  const notConfigured =
+    !window.emailjs ||
+    !EMAILJS_PUBLIC_KEY || EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY' ||
+    !EMAILJS_SERVICE_ID || EMAILJS_SERVICE_ID === 'YOUR_SERVICE_ID' ||
+    !EMAILJS_TEMPLATE_ID || EMAILJS_TEMPLATE_ID === 'YOUR_TEMPLATE_ID';
+  if (notConfigured) {
+    console.warn('EmailJS nie skonfigurowany — pomijam e-mail do klienta.');
+    return;
+  }
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email: order.email,
+      to_name: order.name,
+      subject: `Potwierdzenie zamówienia ${order.orderNo} — PeptiLab`,
+      order_no: order.orderNo,
+      total: fmt(order.total),
+      message: buildCustomerMessage(order),
+    }, { publicKey: EMAILJS_PUBLIC_KEY });
+  } catch (e) {
+    console.warn('Nie udało się wysłać e-maila do klienta:', e);
+  }
+}
+
 checkoutForm.addEventListener('submit', async e => {
   e.preventDefault();
 
@@ -449,6 +510,9 @@ checkoutForm.addEventListener('submit', async e => {
   }
 
   if (window.hcaptcha) hcaptcha.reset();
+
+  // wyślij e-mail potwierdzający do klienta (nie blokuje w razie błędu)
+  emailCustomer(order);
 
   // powodzenie → uzupełnij i pokaż potwierdzenie
   document.getElementById('confirm-name').textContent = order.name;
