@@ -36,6 +36,26 @@
   pointer-events: none;
 }
 
+/* Karty wyboru przesyłki (rodzaj / obszar) */
+.ship-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+.ship-opt:hover { border-color: #94a3b8; }
+.ship-opt:has(input:checked) {
+  border-color: #2f6bff;
+  background: #eef6ff;
+  box-shadow: 0 0 0 1px #2f6bff;
+}
+.ship-opt input { accent-color: #2f6bff; }
+
 /* Checkout form fields */
 .field {
   width: 100%;

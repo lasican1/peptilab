@@ -17,6 +17,17 @@ const STORAGE_KEY = 'peptilab.cart';
 // potwierdzane lokalnie, bez wysyłki e-maila.
 const WEB3FORMS_ACCESS_KEY = '20d7db36-36ee-47c1-8934-f3c447f01c0a';
 
+// ----- Wysyłka i płatność -----
+// Koszt wysyłki wg obszaru (w złotówkach)
+const SHIPPING_COSTS = { pl: 20, eu: 100 };
+const SHIPPING_REGION_LABELS = { pl: 'Polska', eu: 'Europa' };
+const SHIPPING_METHOD_LABELS = { kurier: 'Kurier', paczkomat: 'Paczkomat' };
+
+// Numer konta do przelewu — WPISZ TUTAJ swój numer, gdy będziesz go mieć.
+const BANK_ACCOUNT = '00 0000 0000 0000 0000 0000 0000';
+// Odbiorca przelewu
+const BANK_RECIPIENT = 'PeptiLab';
+
 // cart: Map<id, { product, qty }>
 const cart = new Map();
 
@@ -179,6 +190,40 @@ function cartTotalValue() {
   return [...cart.values()].reduce((s, e) => s + e.qty * e.product.price, 0);
 }
 
+// ----- Wysyłka -----
+function getShipMethod() {
+  const r = checkoutForm.elements['shipMethod'];
+  return (r && r.value) || 'kurier';
+}
+function getShipRegion() {
+  const r = checkoutForm.elements['shipRegion'];
+  return (r && r.value) || 'pl';
+}
+function shippingCost() {
+  return SHIPPING_COSTS[getShipRegion()] || 0;
+}
+function orderTotal() {
+  return cartTotalValue() + shippingCost();
+}
+
+// Pokaż/ukryj pole numeru paczkomatu zależnie od wybranego rodzaju przesyłki
+function togglePaczkomat() {
+  const show = getShipMethod() === 'paczkomat';
+  document.getElementById('paczkomat-wrap').classList.toggle('hidden', !show);
+  if (!show) setError('paczkomat', '');
+}
+
+// Przelicz i wyświetl kwoty (produkty / wysyłka / razem)
+function renderCheckoutTotals() {
+  const subtotal = cartTotalValue();
+  const ship = shippingCost();
+  const total = subtotal + ship;
+  document.getElementById('sum-subtotal').textContent = fmt(subtotal);
+  document.getElementById('sum-shipping').textContent = fmt(ship);
+  document.getElementById('checkout-total').textContent = fmt(total);
+  document.getElementById('checkout-btn-total').textContent = fmt(total);
+}
+
 function renderCheckoutSummary() {
   const entries = [...cart.values()];
   checkoutSummary.innerHTML = entries.map(({ product: p, qty }) => `
@@ -192,9 +237,7 @@ function renderCheckoutSummary() {
     </div>
   `).join('');
 
-  const total = fmt(cartTotalValue());
-  document.getElementById('checkout-total').textContent = total;
-  document.getElementById('checkout-btn-total').textContent = total;
+  renderCheckoutTotals();
 }
 
 function openCheckout() {
@@ -205,6 +248,7 @@ function openCheckout() {
   checkoutTitle.textContent = 'Zamówienie';
   clearFieldErrors();
   renderCheckoutSummary();
+  togglePaczkomat();
 
   closeCart();
   checkoutOverlay.classList.remove('hidden');
@@ -257,13 +301,30 @@ function validateForm() {
     if (msg && !firstInvalid) firstInvalid = checkoutForm.elements[name];
   });
 
+  // Numer paczkomatu wymagany tylko przy wyborze przesyłki do paczkomatu
+  if (getShipMethod() === 'paczkomat') {
+    const paczEl = checkoutForm.elements['paczkomat'];
+    if (!paczEl.value.trim()) {
+      setError('paczkomat', 'Podaj numer paczkomatu.');
+      if (!firstInvalid) firstInvalid = paczEl;
+    } else {
+      setError('paczkomat', '');
+    }
+  }
+
   if (firstInvalid) firstInvalid.focus();
   return !firstInvalid;
 }
 
 // Usuń komunikat o błędzie, gdy tylko użytkownik zacznie poprawiać pole
 checkoutForm.addEventListener('input', e => {
-  if (fields.includes(e.target.name)) setError(e.target.name, '');
+  if (fields.includes(e.target.name) || e.target.name === 'paczkomat') setError(e.target.name, '');
+});
+
+// Reaguj na zmianę rodzaju przesyłki / obszaru wysyłki
+checkoutForm.addEventListener('change', e => {
+  if (e.target.name === 'shipMethod') togglePaczkomat();
+  if (e.target.name === 'shipMethod' || e.target.name === 'shipRegion') renderCheckoutTotals();
 });
 
 // ----- Wysyłka zamówienia e-mailem (Web3Forms) -----
@@ -284,16 +345,27 @@ async function emailOrder(order, captchaToken) {
   const message =
     `Nowe zamówienie ${order.orderNo}\n\n` +
     `Produkty:\n${order.lines}\n\n` +
-    `Razem: ${fmt(order.total)}\n\n` +
+    `Produkty razem: ${fmt(order.subtotal)}\n` +
+    `Wysyłka (${order.shipMethodLabel}, ${order.shipRegionLabel}): ${fmt(order.shipping)}\n` +
+    `RAZEM DO ZAPŁATY: ${fmt(order.total)}\n\n` +
+    `Dostawa:\n` +
+    `  Rodzaj przesyłki: ${order.shipMethodLabel}\n` +
+    (order.paczkomat ? `  Numer paczkomatu: ${order.paczkomat}\n` : '') +
+    `  Obszar: ${order.shipRegionLabel}\n\n` +
     `Klient:\n` +
     `  Imię i nazwisko: ${order.name}\n` +
     `  E-mail: ${order.email}\n` +
     `  Telefon: ${order.phone}\n\n` +
-    `Wysyłka do:\n` +
+    `Adres dostawy:\n` +
     `  ${order.address}\n` +
     `  ${order.postal} ${order.city}\n` +
     `  ${order.country}\n\n` +
-    `Uwagi: ${order.notes || '—'}`;
+    `Uwagi: ${order.notes || '—'}\n\n` +
+    `Płatność: przelew\n` +
+    `  Odbiorca: ${BANK_RECIPIENT}\n` +
+    `  Tytuł: ${order.orderNo}\n` +
+    `  Kwota: ${fmt(order.total)}\n` +
+    `  Numer konta: ${BANK_ACCOUNT}`;
 
   const res = await fetch('https://api.web3forms.com/submit', {
     method: 'POST',
@@ -337,10 +409,19 @@ checkoutForm.addEventListener('submit', async e => {
     return;
   }
 
+  const method = getShipMethod();
+  const region = getShipRegion();
   const order = {
     orderNo: 'PL-' + Date.now().toString(36).toUpperCase(),
-    total: cartTotalValue(),
+    subtotal: cartTotalValue(),
+    shipping: shippingCost(),
+    total: orderTotal(),
     lines: buildOrderLines(),
+    shipMethod: method,
+    shipMethodLabel: SHIPPING_METHOD_LABELS[method],
+    shipRegion: region,
+    shipRegionLabel: SHIPPING_REGION_LABELS[region],
+    paczkomat: method === 'paczkomat' ? checkoutForm.elements['paczkomat'].value.trim() : '',
     name: checkoutForm.elements['name'].value.trim(),
     email: checkoutForm.elements['email'].value.trim(),
     phone: checkoutForm.elements['phone'].value.trim(),
@@ -372,8 +453,28 @@ checkoutForm.addEventListener('submit', async e => {
   // powodzenie → uzupełnij i pokaż potwierdzenie
   document.getElementById('confirm-name').textContent = order.name;
   document.getElementById('confirm-email').textContent = order.email;
-  document.getElementById('confirm-order').textContent = order.orderNo;
-  document.getElementById('confirm-total').textContent = fmt(order.total);
+  document.getElementById('confirm-details').innerHTML = `
+    <div class="rounded-xl bg-slate-50 border border-slate-200 p-5 space-y-4 text-left">
+      <div>
+        <div class="text-sm text-slate-500">Numer zamówienia</div>
+        <div class="font-mono font-bold text-lg text-slate-900">${order.orderNo}</div>
+      </div>
+      <div>
+        <div class="text-sm text-slate-500">Dostawa</div>
+        <div class="font-medium text-slate-800">${order.shipMethodLabel} — ${order.shipRegionLabel} (${fmt(order.shipping)})</div>
+        ${order.paczkomat ? `<div class="text-sm text-slate-600">Numer paczkomatu: ${order.paczkomat}</div>` : ''}
+      </div>
+      <div class="pt-4 border-t border-slate-200">
+        <div class="font-bold text-slate-900 mb-1">Płatność przelewem</div>
+        <p class="text-sm text-slate-500 mb-3">Prosimy o przelew na poniższe dane. Zamówienie realizujemy po zaksięgowaniu wpłaty.</p>
+        <dl class="text-sm space-y-2">
+          <div class="flex justify-between gap-4"><dt class="text-slate-500">Odbiorca</dt><dd class="font-medium text-slate-900 text-right">${BANK_RECIPIENT}</dd></div>
+          <div class="flex justify-between gap-4"><dt class="text-slate-500">Tytuł płatności</dt><dd class="font-mono font-medium text-slate-900 text-right">${order.orderNo}</dd></div>
+          <div class="flex justify-between gap-4"><dt class="text-slate-500">Kwota</dt><dd class="font-bold text-slate-900 text-right">${fmt(order.total)}</dd></div>
+          <div class="flex justify-between gap-4"><dt class="text-slate-500">Numer konta</dt><dd class="font-mono font-medium text-slate-900 text-right break-all">${BANK_ACCOUNT}</dd></div>
+        </dl>
+      </div>
+    </div>`;
 
   checkoutTitle.textContent = 'Potwierdzenie';
   checkoutView.classList.add('hidden');
