@@ -2,10 +2,10 @@
 
 // ----- Katalog produktów -----
 const products = [
-  { id: 1, name: 'BPC-157',     desc: 'Fiolka 5 mg · czystość 99,8%',  price: 199.99, tag: 'Bestseller', color: 'from-sky-400 to-blue-600' },
-  { id: 2, name: 'TB-500',      desc: 'Fiolka 5 mg · czystość 99,7%',  price: 239.99, tag: 'Popularne',  color: 'from-violet-400 to-purple-600' },
-  { id: 3, name: 'GHK-Cu',      desc: 'Fiolka 50 mg · czystość 99,9%', price: 159.99, tag: null,         color: 'from-emerald-400 to-teal-600' },
-  { id: 4, name: 'Semaglutyd',  desc: 'Fiolka 3 mg · czystość 99,6%',  price: 359.99, tag: 'Nowość',     color: 'from-amber-400 to-orange-600' },
+  { id: 1, name: 'Retarutide',     desc: 'Fiolka 10 mg · czystość 99,8%',  price: 400.00, tag: 'Bestseller', color: 'from-sky-400 to-blue-600' },
+  { id: 2, name: 'GHK-Cu',      desc: 'Fiolka 100 mg · czystość 99,7%',  price: 399.99, tag: 'Popularne',  color: 'from-violet-400 to-purple-600' },
+  { id: 3, name: 'Semaglutyd',      desc: 'Fiolka 10 mg · czystość 99,9%', price: 299.99, tag: null,         color: 'from-emerald-400 to-teal-600' },
+  { id: 4, name: 'Mots-C',  desc: 'Fiolka 10 mg · czystość 99,6%',  price: 199.99, tag: 'Nowość',     color: 'from-amber-400 to-orange-600' },
 ];
 
 const STORAGE_KEY = 'peptilab.cart';
