@@ -24,6 +24,39 @@
   }
 }
 
+/* Checkout form fields */
+.field {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field::placeholder { color: #94a3b8; }
+.field:focus {
+  outline: none;
+  border-color: #2f6bff;
+  box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.15);
+}
+/* Invalid state (toggled via .field-error class from JS) */
+.field.field-error {
+  border-color: #ef4444;
+}
+.field.field-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+/* Inline error message under a field */
+.err {
+  display: none;
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+.err.show { display: block; }
+
 /* Subtle entrance animation for newly rendered cart rows */
 .cart-row {
   animation: cart-row-in 0.25s ease both;

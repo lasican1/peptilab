@@ -157,6 +157,109 @@
     </div>
   </aside>
 
+  <!-- ===== Checkout Modal ===== -->
+  <div id="checkout-overlay" class="fixed inset-0 bg-black/50 z-[55] hidden opacity-0 transition-opacity duration-300 overflow-y-auto">
+    <div class="min-h-full flex items-start sm:items-center justify-center p-4">
+      <div id="checkout-modal" class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl translate-y-4 transition-transform duration-300">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 h-16 border-b border-slate-200">
+          <h3 id="checkout-title" class="font-bold text-xl">Checkout</h3>
+          <button id="checkout-close" class="w-9 h-9 grid place-items-center rounded-full hover:bg-slate-100 transition text-2xl leading-none">&times;</button>
+        </div>
+
+        <!-- ===== Checkout form view ===== -->
+        <div id="checkout-view" class="p-6">
+          <form id="checkout-form" novalidate class="space-y-8">
+
+            <!-- Order summary -->
+            <section>
+              <h4 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Order summary</h4>
+              <div id="checkout-summary" class="rounded-xl border border-slate-200 divide-y divide-slate-100"></div>
+              <div class="flex items-center justify-between mt-4 text-lg font-bold">
+                <span>Total</span>
+                <span id="checkout-total">$0.00</span>
+              </div>
+            </section>
+
+            <!-- Contact details -->
+            <section>
+              <h4 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Contact details</h4>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                  <label for="f-name" class="block text-sm font-medium text-slate-700 mb-1">Full name</label>
+                  <input id="f-name" name="name" type="text" autocomplete="name" class="field" />
+                  <p class="err"></p>
+                </div>
+                <div>
+                  <label for="f-email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                  <input id="f-email" name="email" type="email" autocomplete="email" class="field" />
+                  <p class="err"></p>
+                </div>
+                <div>
+                  <label for="f-phone" class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                  <input id="f-phone" name="phone" type="tel" autocomplete="tel" class="field" />
+                  <p class="err"></p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Shipping address -->
+            <section>
+              <h4 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Shipping address</h4>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                  <label for="f-address" class="block text-sm font-medium text-slate-700 mb-1">Street address</label>
+                  <input id="f-address" name="address" type="text" autocomplete="street-address" class="field" />
+                  <p class="err"></p>
+                </div>
+                <div>
+                  <label for="f-city" class="block text-sm font-medium text-slate-700 mb-1">City</label>
+                  <input id="f-city" name="city" type="text" autocomplete="address-level2" class="field" />
+                  <p class="err"></p>
+                </div>
+                <div>
+                  <label for="f-postal" class="block text-sm font-medium text-slate-700 mb-1">Postal code</label>
+                  <input id="f-postal" name="postal" type="text" autocomplete="postal-code" class="field" />
+                  <p class="err"></p>
+                </div>
+                <div class="sm:col-span-2">
+                  <label for="f-country" class="block text-sm font-medium text-slate-700 mb-1">Country</label>
+                  <input id="f-country" name="country" type="text" autocomplete="country-name" class="field" />
+                  <p class="err"></p>
+                </div>
+                <div class="sm:col-span-2">
+                  <label for="f-notes" class="block text-sm font-medium text-slate-700 mb-1">Order notes <span class="text-slate-400 font-normal">(optional)</span></label>
+                  <textarea id="f-notes" name="notes" rows="2" class="field resize-none"></textarea>
+                </div>
+              </div>
+            </section>
+
+            <button type="submit" class="w-full rounded-full bg-brand-500 text-white py-3.5 font-semibold hover:bg-brand-600 transition">
+              Place order · <span id="checkout-btn-total">$0.00</span>
+            </button>
+            <p class="text-center text-xs text-slate-400">Demo checkout — no payment is processed and no data leaves your browser.</p>
+          </form>
+        </div>
+
+        <!-- ===== Confirmation view ===== -->
+        <div id="confirm-view" class="hidden p-8 text-center">
+          <div class="mx-auto w-16 h-16 rounded-full bg-green-100 text-green-600 grid place-items-center text-3xl mb-4">✓</div>
+          <h3 class="text-2xl font-extrabold text-slate-900">Order confirmed!</h3>
+          <p class="text-slate-500 mt-2">Thanks, <span id="confirm-name" class="font-semibold text-slate-700"></span>. A confirmation has been sent to <span id="confirm-email" class="font-semibold text-slate-700"></span>.</p>
+          <div class="mt-6 inline-block text-left rounded-xl bg-slate-50 border border-slate-200 px-5 py-4">
+            <div class="text-sm text-slate-500">Order number</div>
+            <div id="confirm-order" class="font-mono font-bold text-lg text-slate-900"></div>
+            <div class="text-sm text-slate-500 mt-3">Total paid</div>
+            <div id="confirm-total" class="font-bold text-lg text-slate-900"></div>
+          </div>
+          <button id="confirm-done" class="block w-full mt-8 rounded-full bg-slate-900 text-white py-3.5 font-semibold hover:bg-slate-700 transition">Continue shopping</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- ===== Toast ===== -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     Added to cart

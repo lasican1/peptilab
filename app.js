@@ -154,14 +154,144 @@ document.getElementById('cart-close').addEventListener('click', closeCart);
 overlay.addEventListener('click', closeCart);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
 
-// ----- Checkout -----
-checkoutBtn.addEventListener('click', () => {
-  const total = [...cart.values()].reduce((s, e) => s + e.qty * e.product.price, 0);
-  showToast(`Order placed! Total: ${fmt(total)} 🎉`);
+// ----- Checkout modal -----
+const checkoutOverlay = document.getElementById('checkout-overlay');
+const checkoutModal = document.getElementById('checkout-modal');
+const checkoutView = document.getElementById('checkout-view');
+const confirmView = document.getElementById('confirm-view');
+const checkoutForm = document.getElementById('checkout-form');
+const checkoutSummary = document.getElementById('checkout-summary');
+const checkoutTitle = document.getElementById('checkout-title');
+
+function cartTotalValue() {
+  return [...cart.values()].reduce((s, e) => s + e.qty * e.product.price, 0);
+}
+
+function renderCheckoutSummary() {
+  const entries = [...cart.values()];
+  checkoutSummary.innerHTML = entries.map(({ product: p, qty }) => `
+    <div class="flex items-center justify-between px-4 py-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="shrink-0 w-6 h-6 grid place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">${qty}</span>
+        <span class="font-medium text-slate-800 truncate">${p.name}</span>
+        <span class="text-slate-400 text-sm truncate hidden sm:inline">${p.desc}</span>
+      </div>
+      <span class="font-semibold text-slate-900 whitespace-nowrap">${fmt(p.price * qty)}</span>
+    </div>
+  `).join('');
+
+  const total = fmt(cartTotalValue());
+  document.getElementById('checkout-total').textContent = total;
+  document.getElementById('checkout-btn-total').textContent = total;
+}
+
+function openCheckout() {
+  if (cartTotalValue() <= 0) return;
+  // reset to form view
+  checkoutView.classList.remove('hidden');
+  confirmView.classList.add('hidden');
+  checkoutTitle.textContent = 'Checkout';
+  clearFieldErrors();
+  renderCheckoutSummary();
+
+  closeCart();
+  checkoutOverlay.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    checkoutOverlay.classList.remove('opacity-0');
+    checkoutModal.classList.remove('translate-y-4');
+  });
+}
+
+function closeCheckout() {
+  checkoutOverlay.classList.add('opacity-0');
+  checkoutModal.classList.add('translate-y-4');
+  setTimeout(() => checkoutOverlay.classList.add('hidden'), 300);
+}
+
+// ----- Form validation -----
+const fields = ['name', 'email', 'phone', 'address', 'city', 'postal', 'country'];
+
+function setError(name, message) {
+  const input = checkoutForm.elements[name];
+  const errEl = input.parentElement.querySelector('.err');
+  if (message) {
+    input.classList.add('field-error');
+    if (errEl) { errEl.textContent = message; errEl.classList.add('show'); }
+  } else {
+    input.classList.remove('field-error');
+    if (errEl) { errEl.classList.remove('show'); }
+  }
+}
+
+function clearFieldErrors() {
+  fields.forEach(f => setError(f, ''));
+}
+
+function validateForm() {
+  let firstInvalid = null;
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  fields.forEach(name => {
+    const value = checkoutForm.elements[name].value.trim();
+    let msg = '';
+    if (!value) {
+      msg = 'This field is required.';
+    } else if (name === 'email' && !emailRe.test(value)) {
+      msg = 'Enter a valid email address.';
+    } else if (name === 'phone' && value.replace(/\D/g, '').length < 6) {
+      msg = 'Enter a valid phone number.';
+    }
+    setError(name, msg);
+    if (msg && !firstInvalid) firstInvalid = checkoutForm.elements[name];
+  });
+
+  if (firstInvalid) firstInvalid.focus();
+  return !firstInvalid;
+}
+
+// Clear a field's error as soon as the user edits it
+checkoutForm.addEventListener('input', e => {
+  if (fields.includes(e.target.name)) setError(e.target.name, '');
+});
+
+// ----- Submit / place order -----
+checkoutForm.addEventListener('submit', e => {
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  const total = cartTotalValue();
+  const name = checkoutForm.elements['name'].value.trim();
+  const email = checkoutForm.elements['email'].value.trim();
+  const orderNo = 'PL-' + Date.now().toString(36).toUpperCase();
+
+  // --- Where a real integration goes ---
+  // Send the order to your backend / payment provider here, e.g.:
+  //   await fetch('/api/orders', { method: 'POST', body: JSON.stringify({ orderNo, items: [...cart.values()], total, ...customer }) });
+  // For this demo we just confirm locally.
+
+  document.getElementById('confirm-name').textContent = name;
+  document.getElementById('confirm-email').textContent = email;
+  document.getElementById('confirm-order').textContent = orderNo;
+  document.getElementById('confirm-total').textContent = fmt(total);
+
+  // swap to confirmation view
+  checkoutTitle.textContent = 'Confirmation';
+  checkoutView.classList.add('hidden');
+  confirmView.classList.remove('hidden');
+
+  // empty the cart
   cart.clear();
   renderCart();
-  closeCart();
 });
+
+// Open checkout from the cart drawer button
+checkoutBtn.addEventListener('click', openCheckout);
+
+// Close handlers
+document.getElementById('checkout-close').addEventListener('click', closeCheckout);
+document.getElementById('confirm-done').addEventListener('click', closeCheckout);
+checkoutOverlay.addEventListener('click', e => { if (!checkoutModal.contains(e.target)) closeCheckout(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCheckout(); });
 
 // ----- Toast -----
 const toast = document.getElementById('toast');
