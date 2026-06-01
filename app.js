@@ -10,6 +10,13 @@ const products = [
 
 const STORAGE_KEY = 'peptilab.cart';
 
+// ----- Email-the-order config (Web3Forms) -----
+// Get a free access key at https://web3forms.com (enter the email where you
+// want orders delivered; the key is emailed to you instantly). Paste it below.
+// While left as the placeholder, the checkout still works but only confirms
+// locally without sending an email.
+const WEB3FORMS_ACCESS_KEY = 'YOUR_ACCESS_KEY_HERE';
+
 // cart: Map<id, { product, qty }>
 const cart = new Map();
 
@@ -255,31 +262,103 @@ checkoutForm.addEventListener('input', e => {
 });
 
 // ----- Submit / place order -----
-checkoutForm.addEventListener('submit', e => {
+const placeOrderBtn = document.getElementById('place-order-btn');
+const placeOrderLabel = document.getElementById('place-order-label');
+const checkoutError = document.getElementById('checkout-error');
+
+function buildOrderLines() {
+  return [...cart.values()]
+    .map(({ product: p, qty }) => `  ${qty} x ${p.name} (${p.desc}) — ${fmt(p.price * qty)}`)
+    .join('\n');
+}
+
+// Sends the order via Web3Forms. Returns true on success.
+// If no access key is configured yet, resolves true without sending (demo mode).
+async function emailOrder(order) {
+  if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY === 'YOUR_ACCESS_KEY_HERE') {
+    console.warn('Web3Forms access key not set — skipping email (demo mode).');
+    return true;
+  }
+
+  const message =
+    `New order ${order.orderNo}\n\n` +
+    `Items:\n${order.lines}\n\n` +
+    `Total: ${fmt(order.total)}\n\n` +
+    `Customer:\n` +
+    `  Name: ${order.name}\n` +
+    `  Email: ${order.email}\n` +
+    `  Phone: ${order.phone}\n\n` +
+    `Ship to:\n` +
+    `  ${order.address}\n` +
+    `  ${order.city}, ${order.postal}\n` +
+    `  ${order.country}\n\n` +
+    `Notes: ${order.notes || '—'}`;
+
+  const res = await fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      access_key: WEB3FORMS_ACCESS_KEY,
+      subject: `New PeptiLab order ${order.orderNo} — ${fmt(order.total)}`,
+      from_name: 'PeptiLab Store',
+      replyto: order.email,
+      message,
+    }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || 'Email service returned an error.');
+  }
+  return true;
+}
+
+checkoutForm.addEventListener('submit', async e => {
   e.preventDefault();
   if (!validateForm()) return;
 
-  const total = cartTotalValue();
-  const name = checkoutForm.elements['name'].value.trim();
-  const email = checkoutForm.elements['email'].value.trim();
-  const orderNo = 'PL-' + Date.now().toString(36).toUpperCase();
+  const order = {
+    orderNo: 'PL-' + Date.now().toString(36).toUpperCase(),
+    total: cartTotalValue(),
+    lines: buildOrderLines(),
+    name: checkoutForm.elements['name'].value.trim(),
+    email: checkoutForm.elements['email'].value.trim(),
+    phone: checkoutForm.elements['phone'].value.trim(),
+    address: checkoutForm.elements['address'].value.trim(),
+    city: checkoutForm.elements['city'].value.trim(),
+    postal: checkoutForm.elements['postal'].value.trim(),
+    country: checkoutForm.elements['country'].value.trim(),
+    notes: checkoutForm.elements['notes'].value.trim(),
+  };
 
-  // --- Where a real integration goes ---
-  // Send the order to your backend / payment provider here, e.g.:
-  //   await fetch('/api/orders', { method: 'POST', body: JSON.stringify({ orderNo, items: [...cart.values()], total, ...customer }) });
-  // For this demo we just confirm locally.
+  // loading state
+  checkoutError.classList.add('hidden');
+  placeOrderBtn.disabled = true;
+  placeOrderLabel.textContent = 'Placing order…';
 
-  document.getElementById('confirm-name').textContent = name;
-  document.getElementById('confirm-email').textContent = email;
-  document.getElementById('confirm-order').textContent = orderNo;
-  document.getElementById('confirm-total').textContent = fmt(total);
+  try {
+    await emailOrder(order);
+  } catch (err) {
+    checkoutError.textContent = "Sorry, we couldn't submit your order: " + err.message + ' Please try again.';
+    checkoutError.classList.remove('hidden');
+    placeOrderBtn.disabled = false;
+    placeOrderLabel.innerHTML = 'Place order · <span id="checkout-btn-total">' + fmt(order.total) + '</span>';
+    return;
+  }
 
-  // swap to confirmation view
+  // success → fill + show confirmation
+  document.getElementById('confirm-name').textContent = order.name;
+  document.getElementById('confirm-email').textContent = order.email;
+  document.getElementById('confirm-order').textContent = order.orderNo;
+  document.getElementById('confirm-total').textContent = fmt(order.total);
+
   checkoutTitle.textContent = 'Confirmation';
   checkoutView.classList.add('hidden');
   confirmView.classList.remove('hidden');
 
-  // empty the cart
+  // reset button for next time + empty the cart
+  placeOrderBtn.disabled = false;
+  placeOrderLabel.innerHTML = 'Place order · <span id="checkout-btn-total">$0.00</span>';
   cart.clear();
   renderCart();
 });

@@ -235,10 +235,11 @@
               </div>
             </section>
 
-            <button type="submit" class="w-full rounded-full bg-brand-500 text-white py-3.5 font-semibold hover:bg-brand-600 transition">
-              Place order · <span id="checkout-btn-total">$0.00</span>
+            <button id="place-order-btn" type="submit" class="w-full rounded-full bg-brand-500 text-white py-3.5 font-semibold hover:bg-brand-600 transition disabled:opacity-60 disabled:cursor-not-allowed">
+              <span id="place-order-label">Place order · <span id="checkout-btn-total">$0.00</span></span>
             </button>
-            <p class="text-center text-xs text-slate-400">Demo checkout — no payment is processed and no data leaves your browser.</p>
+            <p id="checkout-error" class="hidden text-center text-sm text-red-500"></p>
+            <p class="text-center text-xs text-slate-400">Your order details are emailed to the shop. No payment is processed here.</p>
           </form>
         </div>
 
