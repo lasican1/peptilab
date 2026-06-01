@@ -33,9 +33,9 @@ const BANK_RECIPIENT = 'PeptiLab';
 // utwórz szablon i wklej trzy wartości poniżej. Dopóki są wartości zastępcze,
 // e-mail do klienta jest pomijany (zamówienie i tak działa, dane do przelewu
 // klient widzi na ekranie potwierdzenia).
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';
-const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+const EMAILJS_PUBLIC_KEY  = 'MOlwfu9oJ4fjhJG8v';
+const EMAILJS_SERVICE_ID  = 'service_fa14yml';
+const EMAILJS_TEMPLATE_ID = 'template_xu4zjso';
 
 // cart: Map<id, { product, qty }>
 const cart = new Map();
