@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page not found — PeptiLab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: { brand: { 50: '#eef6ff', 100: '#d9eaff', 500: '#2f6bff', 600: '#1f53e0', 700: '#1a44b8' } },
+        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+      } }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="font-sans bg-slate-50 text-slate-800 antialiased">
+  <main class="min-h-screen grid place-items-center px-4">
+    <div class="relative w-full max-w-lg text-center">
+      <!-- decorative glow -->
+      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-80 bg-brand-100 rounded-full blur-3xl opacity-60 -z-10"></div>
+
+      <a href="/" class="inline-flex items-center gap-2 font-extrabold text-xl tracking-tight mb-10">
+        <span class="grid place-items-center w-8 h-8 rounded-lg bg-brand-500 text-white">P</span>
+        Pepti<span class="text-brand-500">Lab</span>
+      </a>
+
+      <div class="text-7xl md:text-8xl font-extrabold text-brand-500 leading-none">404</div>
+      <h1 class="mt-4 text-2xl md:text-3xl font-extrabold text-slate-900">Page not found</h1>
+      <p class="mt-3 text-slate-500">
+        The page you're looking for doesn't exist or may have moved.
+        Let's get you back to the lab.
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-3 justify-center">
+        <a href="/" class="rounded-full bg-brand-500 text-white px-6 py-3 font-semibold hover:bg-brand-600 transition shadow-lg shadow-brand-500/30">Back to shop</a>
+        <a href="/#products" class="rounded-full bg-white text-slate-700 px-6 py-3 font-semibold border border-slate-200 hover:border-slate-300 transition">View products</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
