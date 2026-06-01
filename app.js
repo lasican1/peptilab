@@ -274,7 +274,7 @@ function buildOrderLines() {
 
 // Sends the order via Web3Forms. Returns true on success.
 // If no access key is configured yet, resolves true without sending (demo mode).
-async function emailOrder(order) {
+async function emailOrder(order, captchaToken) {
   if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY === 'YOUR_ACCESS_KEY_HERE') {
     console.warn('Web3Forms access key not set — skipping email (demo mode).');
     return true;
@@ -302,6 +302,7 @@ async function emailOrder(order) {
       subject: `New PeptiLab order ${order.orderNo} — ${fmt(order.total)}`,
       from_name: 'PeptiLab Store',
       replyto: order.email,
+      'h-captcha-response': captchaToken,
       message,
     }),
   });
@@ -325,6 +326,16 @@ checkoutForm.addEventListener('submit', async e => {
 
   if (!validateForm()) return;
 
+  // Require the hCaptcha challenge to be solved (when the widget is loaded).
+  const captchaToken = (window.hcaptcha && typeof hcaptcha.getResponse === 'function')
+    ? hcaptcha.getResponse()
+    : '';
+  if (window.hcaptcha && !captchaToken) {
+    checkoutError.textContent = 'Please complete the “I’m not a robot” check.';
+    checkoutError.classList.remove('hidden');
+    return;
+  }
+
   const order = {
     orderNo: 'PL-' + Date.now().toString(36).toUpperCase(),
     total: cartTotalValue(),
@@ -345,14 +356,17 @@ checkoutForm.addEventListener('submit', async e => {
   placeOrderLabel.textContent = 'Placing order…';
 
   try {
-    await emailOrder(order);
+    await emailOrder(order, captchaToken);
   } catch (err) {
     checkoutError.textContent = "Sorry, we couldn't submit your order: " + err.message + ' Please try again.';
     checkoutError.classList.remove('hidden');
     placeOrderBtn.disabled = false;
     placeOrderLabel.innerHTML = 'Place order · <span id="checkout-btn-total">' + fmt(order.total) + '</span>';
+    if (window.hcaptcha) hcaptcha.reset();
     return;
   }
+
+  if (window.hcaptcha) hcaptcha.reset();
 
   // success → fill + show confirmation
   document.getElementById('confirm-name').textContent = order.name;
