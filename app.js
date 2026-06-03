@@ -37,6 +37,18 @@ const EMAILJS_PUBLIC_KEY  = 'MOlwfu9oJ4fjhJG8v';
 const EMAILJS_SERVICE_ID  = 'service_fa14yml';
 const EMAILJS_TEMPLATE_ID = 'template_xu4zjso';
 
+// ----- Kody rabatowe -----
+// Zdefiniuj własne kody i procent zniżki na produkty (na wartość koszyka).
+// Klucz = kod wpisywany przez klienta (wielkość liter bez znaczenia),
+// wartość = procent obniżki. Dodawaj / zmieniaj / usuwaj wedle uznania.
+const DISCOUNT_CODES = {
+  'PEPTI10': 10,   // -10%
+  'WITAJ15': 15,   // -15%
+};
+
+// Aktualnie zastosowany rabat (ustawiany po kliknięciu „Zastosuj”)
+let appliedDiscount = { code: '', percent: 0 };
+
 // cart: Map<id, { product, qty }>
 const cart = new Map();
 
@@ -211,8 +223,49 @@ function getShipRegion() {
 function shippingCost() {
   return SHIPPING_COSTS[getShipRegion()] || 0;
 }
+
+// ----- Rabat -----
+function discountPercent() {
+  return appliedDiscount.percent || 0;
+}
+// Kwota rabatu liczona od wartości produktów (koszyka)
+function discountAmount() {
+  return cartTotalValue() * discountPercent() / 100;
+}
+
 function orderTotal() {
-  return cartTotalValue() + shippingCost();
+  return cartTotalValue() - discountAmount() + shippingCost();
+}
+
+// Sprawdza wpisany kod i ustawia rabat (lub komunikat o błędzie)
+function applyDiscount() {
+  const input = document.getElementById('f-discount');
+  const msg = document.getElementById('discount-msg');
+  const code = input.value.trim().toUpperCase();
+
+  if (!code) {
+    appliedDiscount = { code: '', percent: 0 };
+    msg.textContent = '';
+    msg.className = 'text-sm mt-1';
+  } else if (DISCOUNT_CODES[code]) {
+    appliedDiscount = { code, percent: DISCOUNT_CODES[code] };
+    msg.textContent = `Zastosowano kod ${code}: −${appliedDiscount.percent}%`;
+    msg.className = 'text-sm mt-1 text-green-600';
+  } else {
+    appliedDiscount = { code: '', percent: 0 };
+    msg.textContent = 'Nieprawidłowy kod rabatowy.';
+    msg.className = 'text-sm mt-1 text-red-500';
+  }
+  renderCheckoutTotals();
+}
+
+// Czyści zastosowany rabat i pole (przy otwarciu okna zamówienia)
+function resetDiscount() {
+  appliedDiscount = { code: '', percent: 0 };
+  const input = document.getElementById('f-discount');
+  if (input) input.value = '';
+  const msg = document.getElementById('discount-msg');
+  if (msg) { msg.textContent = ''; msg.className = 'text-sm mt-1'; }
 }
 
 // Pokaż/ukryj pole numeru paczkomatu zależnie od wybranego rodzaju przesyłki
@@ -225,10 +278,24 @@ function togglePaczkomat() {
 // Przelicz i wyświetl kwoty (produkty / wysyłka / razem)
 function renderCheckoutTotals() {
   const subtotal = cartTotalValue();
+  const disc = discountAmount();
   const ship = shippingCost();
-  const total = subtotal + ship;
+  const total = subtotal - disc + ship;
+
   document.getElementById('sum-subtotal').textContent = fmt(subtotal);
   document.getElementById('sum-shipping').textContent = fmt(ship);
+
+  const discRow = document.getElementById('sum-discount-row');
+  if (disc > 0) {
+    discRow.classList.remove('hidden');
+    discRow.classList.add('flex');
+    document.getElementById('sum-discount-label').textContent = `Rabat (${discountPercent()}%)`;
+    document.getElementById('sum-discount').textContent = '−' + fmt(disc);
+  } else {
+    discRow.classList.add('hidden');
+    discRow.classList.remove('flex');
+  }
+
   document.getElementById('checkout-total').textContent = fmt(total);
   document.getElementById('checkout-btn-total').textContent = fmt(total);
 }
@@ -256,6 +323,7 @@ function openCheckout() {
   confirmView.classList.add('hidden');
   checkoutTitle.textContent = 'Zamówienie';
   clearFieldErrors();
+  resetDiscount();
   renderCheckoutSummary();
   togglePaczkomat();
 
@@ -336,6 +404,12 @@ checkoutForm.addEventListener('change', e => {
   if (e.target.name === 'shipMethod' || e.target.name === 'shipRegion') renderCheckoutTotals();
 });
 
+// Kod rabatowy: przycisk „Zastosuj” oraz Enter w polu kodu
+document.getElementById('apply-discount').addEventListener('click', applyDiscount);
+document.getElementById('f-discount').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); applyDiscount(); }
+});
+
 // ----- Wysyłka zamówienia e-mailem (Web3Forms) -----
 function buildOrderLines() {
   return [...cart.values()]
@@ -355,6 +429,7 @@ async function emailOrder(order, captchaToken) {
     `Nowe zamówienie ${order.orderNo}\n\n` +
     `Produkty:\n${order.lines}\n\n` +
     `Produkty razem: ${fmt(order.subtotal)}\n` +
+    (order.discountPercent ? `Rabat (${order.discountCode}, ${order.discountPercent}%): −${fmt(order.discount)}\n` : '') +
     `Wysyłka (${order.shipMethodLabel}, ${order.shipRegionLabel}): ${fmt(order.shipping)}\n` +
     `RAZEM DO ZAPŁATY: ${fmt(order.total)}\n\n` +
     `Dostawa:\n` +
@@ -403,6 +478,7 @@ function buildCustomerMessage(order) {
     `Numer zamówienia: ${order.orderNo}\n\n` +
     `Produkty:\n${order.lines}\n\n` +
     `Produkty razem: ${fmt(order.subtotal)}\n` +
+    (order.discountPercent ? `Rabat (${order.discountCode}, ${order.discountPercent}%): −${fmt(order.discount)}\n` : '') +
     `Wysyłka (${order.shipMethodLabel}, ${order.shipRegionLabel}): ${fmt(order.shipping)}\n` +
     `Razem do zapłaty: ${fmt(order.total)}\n\n` +
     (order.paczkomat ? `Numer paczkomatu: ${order.paczkomat}\n` : '') +
@@ -475,6 +551,9 @@ checkoutForm.addEventListener('submit', async e => {
   const order = {
     orderNo: 'PL-' + Date.now().toString(36).toUpperCase(),
     subtotal: cartTotalValue(),
+    discountCode: appliedDiscount.code,
+    discountPercent: appliedDiscount.percent,
+    discount: discountAmount(),
     shipping: shippingCost(),
     total: orderTotal(),
     lines: buildOrderLines(),
@@ -523,6 +602,10 @@ checkoutForm.addEventListener('submit', async e => {
         <div class="text-sm text-slate-500">Numer zamówienia</div>
         <div class="font-mono font-bold text-lg text-slate-900">${order.orderNo}</div>
       </div>
+      ${order.discountPercent ? `<div>
+        <div class="text-sm text-slate-500">Rabat</div>
+        <div class="font-medium text-green-600">${order.discountCode} (−${order.discountPercent}%): −${fmt(order.discount)}</div>
+      </div>` : ''}
       <div>
         <div class="text-sm text-slate-500">Dostawa</div>
         <div class="font-medium text-slate-800">${order.shipMethodLabel} — ${order.shipRegionLabel} (${fmt(order.shipping)})</div>
